@@ -10,6 +10,7 @@ import {
 } from "./data.js";
 import { esc, documentBody, exportHtml, durationSummary } from "./document.js";
 import { readSessions, writeSessions, mergeImport } from "./store.js";
+import { createFutsalSession } from "./templates/futsal.js";
 import { generateSession } from "./generation/client.js";
 import { generationConfig } from "./generation/config.js";
 let generationController = null;
@@ -303,7 +304,7 @@ const slug = (s) =>
 function newDialog() {
   dialog(
     "Una nueva experiencia",
-    `<p>Genera una propuesta o conserva las opciones de plantilla y sesión en blanco.</p><button class="btn primary" data-action="ai-dialog">Generar sesión con IA</button><label class="field"><span>Grado</span><select id="new-grade">${[1, 2, 3, 4, 5].map((g) => `<option value="${g}" ${g === 3 ? "selected" : ""}>${g}.º de secundaria</option>`).join("")}</select></label><label class="field"><span>Punto de partida</span><select id="new-template"><option value="gym">Fundamentos técnicos de la gimnasia</option><option value="blank">Sesión en blanco · cualquier tema</option></select></label>`,
+    `<p>Genera una propuesta o conserva las opciones de plantilla y sesión en blanco.</p><button class="btn primary" data-action="ai-dialog">Generar sesión con IA</button><label class="field"><span>Grado</span><select id="new-grade">${[1, 2, 3, 4, 5].map((g) => `<option value="${g}" ${g === 3 ? "selected" : ""}>${g}.º de secundaria</option>`).join("")}</select></label><label class="field"><span>Punto de partida</span><select id="new-template"><option value="gym">Fundamentos técnicos de la gimnasia</option><option value="futsal">Futsal · dominio y conducción · 5.º · 135 min</option><option value="blank">Sesión en blanco · cualquier tema</option></select></label>`,
     '<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" data-action="create">Crear sesión ' +
       icon("arrow") +
       "</button>",
@@ -383,6 +384,21 @@ modal.addEventListener("change", (e) => {
     document.querySelector("#ai-notice").textContent = real
       ? "La IA real envía grado, tema, duración y características del grupo al backend y a OpenAI. Consume la cuota autorizada. No incluyas datos personales."
       : "Simulación local: únicamente 4.º, atletismo, 135 minutos. Sin conexión a una API.";
+  }
+});
+modal.addEventListener("change", (e) => {
+  const el = e.target;
+  if (el.id === "new-template") {
+    const grade = document.querySelector("#new-grade");
+    if (el.value === "futsal") {
+      grade.dataset.previousGrade = grade.value;
+      grade.value = "5";
+      grade.disabled = true;
+    } else if (grade.disabled) {
+      grade.disabled = false;
+      grade.value = grade.dataset.previousGrade || "3";
+    }
+    return;
   }
 });
 app.addEventListener("input", (e) => {
@@ -500,8 +516,9 @@ async function action(e) {
   }
   if (a === "create") {
     const g = Number(document.querySelector("#new-grade").value),
-      blank = document.querySelector("#new-template").value === "blank";
-    const s = createSession(g);
+      template = document.querySelector("#new-template").value,
+      blank = template === "blank";
+    const s = template === "futsal" ? createFutsalSession() : createSession(g);
     if (blank) {
       Object.assign(s, {
         title: "Nueva sesión de aprendizaje",
