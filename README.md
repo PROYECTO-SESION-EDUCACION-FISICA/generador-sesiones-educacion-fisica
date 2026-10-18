@@ -87,3 +87,24 @@ La aplicación usa rutas relativas y funciona bajo el subdirectorio del reposito
 ## Verificación
 
 Ocho pruebas automatizadas cubren duración, plantillas de los cinco grados, campos y seguridad de actividades, persistencia, datos corruptos, importación y escape de HTML en exportación. Se verificó además en Chromium: vista de escritorio y móvil, edición persistente, duplicación, filtros de búsqueda, vista previa, Word y creación de sesión.
+
+
+## Formatos de exportación
+
+En «Vista previa» o «Revisar sesión», seleccionar **Formato de exportación**:
+**Institucional en cuadros** o **Descriptivo detallado**. Ambos usan la sesión
+actual del editor, incluidos los cambios pendientes de guardar. Se puede elegir
+lista de cotejo individual o grupal y añadir el visto bueno de la dirección.
+Estas opciones no modifican las sesiones ni el almacenamiento existente.
+
+«Imprimir / Guardar PDF» abre el diálogo del navegador con papel A4. Si los tiempos
+no coinciden con la duración total, corregirlos en el editor antes de imprimir.
+Las cabeceras de las tablas se repiten y las filas se mantienen juntas cuando
+caben en una página; una actividad mayor que una página puede continuar en la
+siguiente sin recortar su contenido. La lista grupal incluye diez espacios por
+hoja de registro; se pueden imprimir copias adicionales.
+
+Validación de esta mejora: diez pruebas automatizadas, compilación estática y
+comprobación en Chromium de ambos formatos, cambios sin guardar, lista grupal,
+firmas, pantalla de 390 px y generación de PDF A4 de la sesión de 135 minutos.
+Se conserva la descarga Word compatible que ya existía.

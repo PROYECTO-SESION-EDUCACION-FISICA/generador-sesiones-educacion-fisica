@@ -2709,3 +2709,22 @@ dialog .field {
     height: 125px;
   }
 }
+
+
+/* Export presentation controls retain the existing editor styling. */
+.export-settings { display:flex; flex-wrap:wrap; gap:18px; align-items:center; padding:20px; margin-bottom:20px; background:#fffefb; border:1px solid #dfe5d3; border-radius:8px; }
+.export-settings .field { flex:1 1 220px; }
+.export-settings > label { font-size:12px; }
+.export-settings p { margin:0; font-size:12px; }
+.session-document td, .session-document th { vertical-align:top; overflow-wrap:anywhere; }
+.session-document table { table-layout:fixed; }
+.session-document .sequence-table td:first-child, .session-document .sequence-table th:first-child { min-width:0; }
+.sequence-table h4 { margin:0 0 8px; }
+.sequence-table p { margin:0 0 10px; }
+.doc-signatures { display:flex; flex-wrap:wrap; justify-content:space-around; gap:25px; margin-top:65px; text-align:center; }
+.group-checklist td { height:34px; }
+.duration-warning { border:1px solid #a95140; padding:10px; }
+@media(max-width:680px) { .export-settings { padding:14px; gap:14px; } .export-settings .btn { width:100%; } .institutional { padding:20px 10px; } .institutional td,.institutional th { padding:5px; } }
+
+.session-document tbody > tr > th[scope="row"] { width:30%; }
+.session-document .sequence-table tbody > tr > th[scope="row"] { width:auto; }

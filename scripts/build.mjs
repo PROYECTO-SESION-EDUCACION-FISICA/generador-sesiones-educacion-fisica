@@ -4,3 +4,4 @@ await mkdir("dist");
 await cp("index.html", "dist/index.html");
 await cp("src", "dist/src", { recursive: true });
 console.log("Aplicación preparada en dist/");
+
