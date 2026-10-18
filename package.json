@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
-    "test": "node tests/session.test.mjs"
+    "test": "node tests/session.test.mjs && node tests/generation.test.mjs && node tests/worker.test.mjs"
   },
   "engines": {
     "node": ">=20"
