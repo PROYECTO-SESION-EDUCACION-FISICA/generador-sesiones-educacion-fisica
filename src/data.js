@@ -321,4 +321,3 @@ export function validImport(value) {
     ["Borrador", "Lista para usar", "Archivada"].includes(value.status)
   );
 }
-
