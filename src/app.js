@@ -8,7 +8,7 @@ import {
   validImport,
   SOURCE,
 } from "./data.js";
-import { esc, documentBody, exportHtml } from "./document.js";
+import { esc, documentBody, exportHtml, durationSummary } from "./document.js";
 import { readSessions, writeSessions, mergeImport } from "./store.js";
 const icons = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -48,6 +48,7 @@ let view = "home",
   dirty = false,
   tab = 0,
   preview = false,
+  exportOptions = { format: "descriptive", checklist: "individual", director: false },
   query = "",
   gradeFilter = "",
   statusFilter = "",
@@ -181,11 +182,15 @@ const tabs = [
   "Secuencia didáctica",
   "Evaluación y ajustes",
 ];
+function exportControls() {
+  const summary = durationSummary(draft);
+  return `<div class="export-settings"><label class="field"><span>Formato de exportación</span><select id="export-format"><option value="institutional" ${exportOptions.format === "institutional" ? "selected" : ""}>Institucional en cuadros</option><option value="descriptive" ${exportOptions.format === "descriptive" ? "selected" : ""}>Descriptivo detallado</option></select></label><label class="field"><span>Lista de cotejo</span><select id="export-checklist"><option value="individual" ${exportOptions.checklist === "individual" ? "selected" : ""}>Individual</option><option value="group" ${exportOptions.checklist === "group" ? "selected" : ""}>Grupal</option></select></label><label><input type="checkbox" id="export-director" ${exportOptions.director ? "checked" : ""}> Incluir visto bueno de la dirección</label><p role="status" class="${summary.valid ? "" : "invalid"}">${summary.valid ? "Tiempo verificado" : "Revisar duración"}: ${summary.minutes} / ${esc(draft.duration)} minutos.</p><button class="btn primary" data-action="pdf">Imprimir / Guardar PDF</button></div>`;
+}
 function editor() {
   if (!draft) return "";
   const t = totals(draft),
     sum = Object.values(t).reduce((a, b) => a + b, 0);
-  return `<div class="editor-top"><button class="text-btn" data-action="library">${icon("back")}Volver a mis sesiones</button><span id="save-state" class="save-state">${dirty ? "Cambios sin guardar" : "Sesión guardada en este navegador"}</span></div><div class="page-heading editor-heading"><div><p class="eyebrow">CONSTRUYE UNA EXPERIENCIA DE APRENDIZAJE</p><h1>${preview ? "Vista de la sesión" : "Editor de sesión"}<span class="orange">.</span></h1><p>${esc(draft.title)}</p></div><div class="button-row"><button class="btn" data-action="preview">${icon(preview ? "settings" : "eye")}${preview ? "Seguir editando" : "Vista previa"}</button><button class="btn primary" data-action="save">${icon("check")}Guardar sesión</button></div></div><div class="editor-toolbar"><div class="button-row"><span class="grade-badge">${draft.grade}.º secundaria</span><span class="time-total ${sum !== draft.duration ? "invalid" : ""}" id="time-summary">${icon("clock")}${sum} / ${draft.duration} min</span></div><div class="button-row"><button class="text-btn" data-action="duplicate">${icon("copy")}Duplicar</button><button class="text-btn" data-action="export">${icon("download")}Descargar</button><button class="icon-btn danger-text" data-action="delete" aria-label="Eliminar sesión">${icon("trash")}</button></div></div>${preview ? `<div class="document-wrap">${documentBody(draft)}</div>` : `<div class="editor-layout"><nav class="editor-tabs" aria-label="Secciones de la sesión">${tabs.map((x, i) => `<button class="${i === tab ? "active" : ""}" data-action="tab" data-tab="${i}"><span>${String(i + 1).padStart(2, "0")}</span>${x}${icon("chevron")}</button>`).join("")}<div class="editor-note">${icon("book")}<p>La propuesta es editable. Contextualízala a las necesidades y posibilidades de tu grupo.</p></div></nav><section class="editor-panel"><div class="panel-title"><p class="eyebrow">SECCIÓN ${tab + 1} DE 5</p><h2>${tabs[tab]}</h2><p>${["El punto de partida de tu sesión de aprendizaje.", "Conecta lo que se aprende, se hace y se evalúa.", "Aprendizajes que atraviesan cada experiencia.", "Organiza una progresión segura, con tiempos claros.", "Observa el proceso y adapta la experiencia."][tab]}</p></div>${editorFields()}<div class="editor-pagination">${tab > 0 ? `<button class="btn" data-action="tab" data-tab="${tab - 1}">${icon("back")}Anterior</button>` : "<span></span>"}${tab < 4 ? `<button class="btn primary" data-action="tab" data-tab="${tab + 1}">Continuar ${icon("arrow")}</button>` : '<button class="btn primary" data-action="preview">Revisar sesión ' + icon("eye") + "</button>"}</div></section></div>`}`;
+  return `<div class="editor-top"><button class="text-btn" data-action="library">${icon("back")}Volver a mis sesiones</button><span id="save-state" class="save-state">${dirty ? "Cambios sin guardar" : "Sesión guardada en este navegador"}</span></div><div class="page-heading editor-heading"><div><p class="eyebrow">CONSTRUYE UNA EXPERIENCIA DE APRENDIZAJE</p><h1>${preview ? "Vista de la sesión" : "Editor de sesión"}<span class="orange">.</span></h1><p>${esc(draft.title)}</p></div><div class="button-row"><button class="btn" data-action="preview">${icon(preview ? "settings" : "eye")}${preview ? "Seguir editando" : "Vista previa"}</button><button class="btn primary" data-action="save">${icon("check")}Guardar sesión</button></div></div><div class="editor-toolbar"><div class="button-row"><span class="grade-badge">${draft.grade}.º secundaria</span><span class="time-total ${sum !== draft.duration ? "invalid" : ""}" id="time-summary">${icon("clock")}${sum} / ${draft.duration} min</span></div><div class="button-row"><button class="text-btn" data-action="duplicate">${icon("copy")}Duplicar</button><button class="text-btn" data-action="export">${icon("download")}Descargar</button><button class="icon-btn danger-text" data-action="delete" aria-label="Eliminar sesión">${icon("trash")}</button></div></div>${preview ? `${exportControls()}<div class="document-wrap">${documentBody(draft, exportOptions)}</div>` : `<div class="editor-layout"><nav class="editor-tabs" aria-label="Secciones de la sesión">${tabs.map((x, i) => `<button class="${i === tab ? "active" : ""}" data-action="tab" data-tab="${i}"><span>${String(i + 1).padStart(2, "0")}</span>${x}${icon("chevron")}</button>`).join("")}<div class="editor-note">${icon("book")}<p>La propuesta es editable. Contextualízala a las necesidades y posibilidades de tu grupo.</p></div></nav><section class="editor-panel"><div class="panel-title"><p class="eyebrow">SECCIÓN ${tab + 1} DE 5</p><h2>${tabs[tab]}</h2><p>${["El punto de partida de tu sesión de aprendizaje.", "Conecta lo que se aprende, se hace y se evalúa.", "Aprendizajes que atraviesan cada experiencia.", "Organiza una progresión segura, con tiempos claros.", "Observa el proceso y adapta la experiencia."][tab]}</p></div>${editorFields()}<div class="editor-pagination">${tab > 0 ? `<button class="btn" data-action="tab" data-tab="${tab - 1}">${icon("back")}Anterior</button>` : "<span></span>"}${tab < 4 ? `<button class="btn primary" data-action="tab" data-tab="${tab + 1}">Continuar ${icon("arrow")}</button>` : '<button class="btn primary" data-action="preview">Revisar sesión ' + icon("eye") + "</button>"}</div></section></div>`}`;
 }
 function editorFields() {
   if (tab === 0)
@@ -336,6 +341,14 @@ app.addEventListener("input", (e) => {
 });
 app.addEventListener("change", (e) => {
   const el = e.target;
+  if (["export-format", "export-checklist", "export-director"].includes(el.id)) {
+    if (el.id === "export-format") exportOptions.format = el.value;
+    if (el.id === "export-checklist") exportOptions.checklist = el.value;
+    if (el.id === "export-director") exportOptions.director = el.checked;
+    render();
+    document.getElementById(el.id)?.focus();
+    return;
+  }
   if (["grade", "competency"].includes(el.dataset.field)) {
     const key = el.dataset.field;
     draft[key] = Number(el.value);
@@ -549,6 +562,7 @@ async function action(e) {
     return;
   }
   if (a === "export") {
+    if (!preview) { preview = true; render(); return; }
     dialog(
       "Lleva tu sesión a clase",
       `<p>Se descargará la versión que estás viendo, incluidos los cambios del editor.</p><div class="export-options"><button data-action="word">${icon("file")}<strong>Documento Word</strong><span>.doc compatible y editable</span></button><button data-action="pdf">${icon("download")}<strong>Imprimir / PDF</strong><span>Elige «Guardar como PDF»</span></button><button data-action="json">${icon("folder")}<strong>Respaldo de sesión</strong><span>.json para volver a importar</span></button></div>`,
@@ -558,7 +572,7 @@ async function action(e) {
   }
   if (a === "word") {
     download(
-      "\ufeff" + exportHtml(draft),
+      "\ufeff" + exportHtml(draft, exportOptions),
       slug(draft.title) + ".doc",
       "application/msword;charset=utf-8",
     );
@@ -579,13 +593,17 @@ async function action(e) {
     return;
   }
   if (a === "pdf") {
+    if (!durationSummary(draft).valid) {
+      toast("Revisa los tiempos: la suma de las actividades debe coincidir con la duración de la sesión antes de imprimir.");
+      return;
+    }
     const w = window.open("", "_blank");
     if (!w) {
       toast("Permite ventanas emergentes para imprimir la sesión.");
       return;
     }
     w.document.open();
-    w.document.write(exportHtml(draft));
+    w.document.write(exportHtml(draft, exportOptions));
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 300);
@@ -631,3 +649,4 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 render();
+

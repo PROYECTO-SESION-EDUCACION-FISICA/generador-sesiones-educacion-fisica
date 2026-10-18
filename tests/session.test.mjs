@@ -104,3 +104,34 @@ test("el documento exportado incluye todas las secciones y escapa HTML", () => {
     for (const activity of phase) assert.ok(html.includes(activity.name));
   assert.ok(documentBody(s).includes("95 MINUTOS"));
 });
+
+
+test("ambos formatos conservan todos los campos y las ediciones sin mutar la sesión", () => {
+  const s = createSession();
+  const fields = ["title", "institution", "teacher", "section", "date", "performance", "precise", "purpose", "evidence", "instrument", "transversal", "transversalCapacities", "transversalAttitude", "approach", "attitude", "adaptations", "notes"];
+  for (const field of fields) s[field] = `MARCA_${field} <&>\nPregunta: ¿cómo?`;
+  s.criteria = s.criteria.map((_, i) => `CRITERIO_${i} <&>`);
+  for (const [phase, activities] of Object.entries(s.sequence)) for (const [i, a] of activities.entries()) for (const field of ["name", "organization", "materials", "execution", "technique", "safety"]) a[field] = `ACT_${phase}_${i}_${field} <&>\nSegunda indicación`;
+  const before = structuredClone(s);
+  for (const format of ["descriptive", "institutional"]) for (const checklist of ["individual", "group"]) {
+    const html = exportHtml(s, { format, checklist, director: true });
+    for (const field of fields) assert.ok(html.includes(`MARCA_${field} &lt;&amp;&gt;`), `${format}: ${field}`);
+    for (const c of s.criteria) assert.ok(html.includes(c.replace("<&>", "&lt;&amp;&gt;")));
+    for (const activities of Object.values(s.sequence)) for (const a of activities) for (const field of ["name", "organization", "materials", "execution", "technique", "safety"]) assert.ok(html.includes(a[field].split("\n")[0].replace("<&>", "&lt;&amp;&gt;")), `${format}: ${field}`);
+    assert.ok(html.includes("V.º B.º de la dirección"));
+    assert.ok(html.includes("Retroalimentación"));
+    assert.ok(html.includes("135 de 135 minutos"));
+    assert.ok(!html.includes("<&>"));
+  }
+  assert.deepEqual(s, before);
+  s.purpose = "Cambio posterior del editor";
+  for (const format of ["descriptive", "institutional"]) assert.ok(documentBody(s, {format}).includes(s.purpose));
+  assert.ok(!documentBody(s).includes("V.º B.º de la dirección"));
+});
+
+test("la exportación advierte los tiempos incoherentes sin corregir datos guardados", () => {
+  const s = createSession();
+  s.duration = 140;
+  for (const format of ["descriptive", "institutional"]) assert.ok(documentBody(s, {format}).includes("Revisar duración: las actividades suman 135 de 140 minutos"));
+  assert.equal(s.duration, 140);
+});
