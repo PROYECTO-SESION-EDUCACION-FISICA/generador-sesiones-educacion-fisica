@@ -115,3 +115,10 @@ En **Nueva sesión → Generar sesión con IA**, probar **4.º de secundaria · 
 **La IA real permanece desactivada tanto en cliente como en servidor. No se han activado servicios ni consumido APIs.** El backend propuesto de Cloudflare Workers usa una clave privada de OpenAI, un código de acceso independiente y cuotas globales persistentes de 5 intentos diarios / 50 mensuales. No se publica automáticamente.
 
 Ver [arquitectura, costos aproximados, límites y pasos de activación](docs/generador-ia.md). `npm test` incluye las pruebas nuevas con respuestas simuladas. No requiere instalar dependencias para ejecutar la aplicación ni estas pruebas.
+
+
+## Plantilla de futsal · 5.º de secundaria
+
+En **Nueva sesión → Punto de partida**, elegir **Futsal · dominio y conducción · 5.º · 135 min**. Incluye inicio de 25 minutos, desarrollo de 95 y cierre de 15, control con planta/interior/exterior, conducción con ambos pies, mirada, cambios de dirección, protección y oposición regulada sin contacto. La referencia curricular reutiliza la síntesis del grado del proyecto; las precisiones y actividades son propuestas docentes editables.
+
+La plantilla se abre como un nuevo borrador con datos informativos vacíos, cuatro criterios y lista de cotejo. Se edita, guarda y exporta con las funciones actuales, sin llamadas a IA ni gastos de API. Las plantillas anteriores se conservan. Su contenido está en `src/templates/futsal.js`; las pruebas específicas se ejecutan con `npm test`.
