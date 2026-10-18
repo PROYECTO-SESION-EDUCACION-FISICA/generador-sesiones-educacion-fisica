@@ -2721,10 +2721,23 @@ dialog .field {
 .session-document .sequence-table td:first-child, .session-document .sequence-table th:first-child { min-width:0; }
 .sequence-table h4 { margin:0 0 8px; }
 .sequence-table p { margin:0 0 10px; }
-.doc-signatures { display:flex; flex-wrap:wrap; justify-content:space-around; gap:25px; margin-top:65px; text-align:center; }
+.doc-signatures { display:flex; flex-wrap:wrap; justify-content:space-around; gap:25px; margin-top:28px; text-align:center; }
 .group-checklist td { height:34px; }
 .duration-warning { border:1px solid #a95140; padding:10px; }
 @media(max-width:680px) { .export-settings { padding:14px; gap:14px; } .export-settings .btn { width:100%; } .institutional { padding:20px 10px; } .institutional td,.institutional th { padding:5px; } }
 
 .session-document tbody > tr > th[scope="row"] { width:30%; }
 .session-document .sequence-table tbody > tr > th[scope="row"] { width:auto; }
+
+
+/* Export-only presentation, shared geometry comes from the document colgroups. */
+.session-document .checklist-table td:nth-child(2),
+.session-document .checklist-table td:nth-child(3),
+.session-document .checklist-table th:nth-child(2),
+.session-document .checklist-table th:nth-child(3) { text-align:center; }
+.session-document .check-box { display:inline-block; width:12px; height:12px; border:1.3px solid #34443e; vertical-align:middle; }
+.session-document .checklist-table td:first-child { min-width:0; }
+.session-document .doc-closing footer { margin-top:14px; padding-top:10px; }
+
+.session-document .checklist-footer-row > td { border:0; padding:0; height:auto; text-align:left; }
+.session-document .doc-feedback { padding-top:10px; font-size:12px; }
