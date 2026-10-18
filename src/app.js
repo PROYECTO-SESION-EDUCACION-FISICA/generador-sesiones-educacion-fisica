@@ -165,7 +165,7 @@ function libraryCards() {
 const field = (label, key, type = "text", extra = "") =>
   `<label class="field ${type === "textarea" ? "wide" : ""}"><span>${label}</span>${type === "textarea" ? `<textarea data-field="${key}" rows="4" ${extra}>${esc(getPath(draft, key))}</textarea>` : `<input data-field="${key}" type="${type}" value="${esc(getPath(draft, key))}" ${extra}>`}</label>`;
 const selectField = (label, key, options) =>
-  `<label class="field"><span>${label}</span><select data-field="${key}">${options.map(([v, l]) => `<option value="${esc(v)}" ${String(getPath(draft, key)) === String(v) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
+  `<label class="field"><span>${label}</span><select data-field="${key}" aria-label="${esc(label)}">${options.map(([v, l]) => `<option value="${esc(v)}" ${String(getPath(draft, key)) === String(v) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
 function getPath(o, p) {
   return p.split(".").reduce((a, k) => a?.[k], o);
 }
