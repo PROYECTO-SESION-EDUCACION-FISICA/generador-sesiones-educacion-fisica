@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es-PE">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#143e36" />
+    <meta
+      name="description"
+      content="Planifica, organiza y descarga sesiones de Educación Física para secundaria en el Perú."
+    />
+    <title>Impulso · Sesiones de Educación Física</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%23143e36'/%3E%3Cpath d='M23 5 10 23h10l-3 12 14-19H21z' fill='%23d9ed9a'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <a href="#main" class="skip">Saltar al contenido</a>
+    <div id="app"></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="modal"></dialog>
+    <input
+      type="file"
+      id="import-file"
+      accept="application/json,.json"
+      hidden
+    />
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
