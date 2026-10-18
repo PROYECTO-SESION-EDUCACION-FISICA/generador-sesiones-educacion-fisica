@@ -10,6 +10,9 @@ import {
 } from "./data.js";
 import { esc, documentBody, exportHtml, durationSummary } from "./document.js";
 import { readSessions, writeSessions, mergeImport } from "./store.js";
+import { generateSession } from "./generation/client.js";
+import { generationConfig } from "./generation/config.js";
+let generationController = null;
 const icons = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   book: '<path d="M4 4h6a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H4zM20 4h-4a3 3 0 0 0-3 3v14a4 4 0 0 1 4-2h3z"/>',
@@ -300,12 +303,88 @@ const slug = (s) =>
 function newDialog() {
   dialog(
     "Una nueva experiencia",
-    `<p>Empieza con una estructura de gimnasia adaptada al grado o con una sesión en blanco.</p><label class="field"><span>Grado</span><select id="new-grade">${[1, 2, 3, 4, 5].map((g) => `<option value="${g}" ${g === 3 ? "selected" : ""}>${g}.º de secundaria</option>`).join("")}</select></label><label class="field"><span>Punto de partida</span><select id="new-template"><option value="gym">Fundamentos técnicos de la gimnasia</option><option value="blank">Sesión en blanco · cualquier tema</option></select></label>`,
+    `<p>Genera una propuesta o conserva las opciones de plantilla y sesión en blanco.</p><button class="btn primary" data-action="ai-dialog">Generar sesión con IA</button><label class="field"><span>Grado</span><select id="new-grade">${[1, 2, 3, 4, 5].map((g) => `<option value="${g}" ${g === 3 ? "selected" : ""}>${g}.º de secundaria</option>`).join("")}</select></label><label class="field"><span>Punto de partida</span><select id="new-template"><option value="gym">Fundamentos técnicos de la gimnasia</option><option value="blank">Sesión en blanco · cualquier tema</option></select></label>`,
     '<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" data-action="create">Crear sesión ' +
       icon("arrow") +
       "</button>",
   );
 }
+function generationDialog() {
+  modal.close();
+  dialog(
+    "Generar sesión con IA",
+    `<p>Modo de prueba sin costo: respuesta simulada y revisada de 4.º, atletismo y 135 minutos. No se consulta una API.</p>
+    <label class="field"><span>Modo de generación</span><select id="ai-mode" aria-label="Modo de generación"><option value="mock">Simulación local · sin costo</option><option value="real" ${generationConfig.realEnabled && generationConfig.endpoint ? "" : "disabled"}>IA real · pendiente de configuración y autorización</option></select></label>
+    <label class="field"><span>Grado</span><select id="ai-grade" aria-label="Grado de secundaria">${[1, 2, 3, 4, 5].map((g) => `<option value="${g}" ${g === 4 ? "selected" : ""}>${g}.º de secundaria</option>`).join("")}</select></label>
+    <label class="field"><span>Tema de aprendizaje</span><input id="ai-topic" aria-label="Tema de aprendizaje" maxlength="180" value="Fundamentos técnicos del atletismo"></label>
+    <label class="field"><span>Duración en minutos (30–240)</span><input id="ai-duration" aria-label="Duración en minutos" type="number" min="30" max="240" step="1" value="135"></label>
+    <label class="field"><span>Características del grupo (opcional, sin nombres ni datos personales)</span><textarea id="ai-group" aria-label="Características del grupo" rows="3" maxlength="800" placeholder="Ej. 28 estudiantes, ritmos diversos y patio de 30 metros."></textarea></label>
+    <div id="ai-access-field" hidden><label class="field"><span>Código de acceso privado del generador · no es la clave API</span><input id="ai-access" aria-label="Código de acceso privado" type="password" autocomplete="off" maxlength="256"></label></div>
+    <p id="ai-notice" role="status">La sesión simulada se abrirá como borrador editable. Revisa y contextualiza antes de usarla.</p><p id="ai-error" role="alert"></p>`,
+    '<button class="btn" data-action="close-modal">Cancelar</button><button class="btn primary" data-action="ai-generate">Generar sesión</button>',
+  );
+}
+async function runGeneration(button) {
+  if (generationController) return;
+  const mode = document.querySelector("#ai-mode").value;
+  const input = {
+    grade: Number(document.querySelector("#ai-grade").value),
+    topic: document.querySelector("#ai-topic").value,
+    duration: Number(document.querySelector("#ai-duration").value),
+    group: document.querySelector("#ai-group").value,
+  };
+  const errorBox = document.querySelector("#ai-error");
+  errorBox.textContent = "";
+  generationController = new AbortController();
+  const controller = generationController;
+  const timeout = setTimeout(() => controller.abort(), 65000);
+  button.disabled = true;
+  button.textContent =
+    mode === "mock" ? "Preparando simulación…" : "Generando sesión…";
+  modal.setAttribute("aria-busy", "true");
+  try {
+    const session = await generateSession(input, {
+      mode,
+      accessCode: document.querySelector("#ai-access").value,
+      signal: controller.signal,
+    });
+    if (controller.signal.aborted) return;
+    modal.close();
+    openEditor(session);
+    markDirty();
+    toast(
+      mode === "mock"
+        ? "Sesión simulada abierta. No se consumió ninguna API."
+        : "Propuesta de IA abierta. Revisa el contenido antes de guardar.",
+    );
+  } catch (error) {
+    if (modal.open)
+      errorBox.textContent =
+        error.name === "AbortError"
+          ? "La generación se canceló o agotó su tiempo. No se reintentó automáticamente."
+          : error.message;
+  } finally {
+    clearTimeout(timeout);
+    generationController = null;
+    modal.removeAttribute("aria-busy");
+    button.disabled = false;
+    button.textContent = "Generar sesión";
+  }
+}
+modal.addEventListener("close", () => {
+  generationController?.abort();
+  const access = document.querySelector("#ai-access");
+  if (access) access.value = "";
+});
+modal.addEventListener("change", (e) => {
+  if (e.target.id === "ai-mode") {
+    const real = e.target.value === "real";
+    document.querySelector("#ai-access-field").hidden = !real;
+    document.querySelector("#ai-notice").textContent = real
+      ? "La IA real envía grado, tema, duración y características del grupo al backend y a OpenAI. Consume la cuota autorizada. No incluyas datos personales."
+      : "Simulación local: únicamente 4.º, atletismo, 135 minutos. Sin conexión a una API.";
+  }
+});
 app.addEventListener("input", (e) => {
   const el = e.target;
   if (el.matches("[data-field]")) {
@@ -402,13 +481,21 @@ async function action(e) {
   if (a === "help") {
     dialog(
       "Tu espacio de planificación",
-      `<p>Impulso funciona sin cuenta. Tus sesiones se guardan solo en este navegador y dispositivo mediante almacenamiento local.</p><p>Usa <strong>Respaldar biblioteca</strong> para conservar un archivo JSON. Puedes importarlo después o en otro equipo. Borrar los datos del navegador elimina la biblioteca local.</p><p><strong>Descargas:</strong> Word genera un archivo .doc compatible; PDF abre el diálogo de impresión para elegir «Guardar como PDF». Los archivos incluyen toda la sesión y la ficha de evaluación.</p><p>Las plantillas son propuestas pedagógicas editables basadas en el CNEB. No se usa generación por IA ni se envían tus datos a un servidor.</p>`,
+      `<p>Impulso funciona sin cuenta. Tus sesiones se guardan solo en este navegador y dispositivo mediante almacenamiento local.</p><p>Usa <strong>Respaldar biblioteca</strong> para conservar un archivo JSON. Puedes importarlo después o en otro equipo. Borrar los datos del navegador elimina la biblioteca local.</p><p><strong>Descargas:</strong> Word genera un archivo .doc compatible; PDF abre el diálogo de impresión para elegir «Guardar como PDF». Los archivos incluyen toda la sesión y la ficha de evaluación.</p><p>Las plantillas son propuestas pedagógicas editables basadas en el CNEB. La simulación del generador funciona localmente. La IA real está desactivada por defecto; si se autoriza, enviará únicamente los datos del formulario de generación al servicio configurado.</p>`,
       '<button class="btn primary" data-action="close-modal">Entendido</button>',
     );
     return;
   }
   if (a === "new") {
     discard(newDialog);
+    return;
+  }
+  if (a === "ai-dialog") {
+    generationDialog();
+    return;
+  }
+  if (a === "ai-generate") {
+    await runGeneration(btn);
     return;
   }
   if (a === "create") {
@@ -649,4 +736,3 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 render();
-

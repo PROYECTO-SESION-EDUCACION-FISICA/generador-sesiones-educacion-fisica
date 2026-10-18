@@ -1,6 +1,6 @@
 # Impulso · Generador de sesiones de Educación Física
 
-Aplicación web en español para planificar sesiones de Educación Física de 1.º a 5.º de secundaria en el Perú. Interfaz adaptable a escritorio y móvil, sin servicios externos, cuentas ni claves de API.
+Aplicación web en español para planificar sesiones de Educación Física de 1.º a 5.º de secundaria en el Perú. Interfaz adaptable a escritorio y móvil. El modo local y la simulación no requieren servicios externos, cuentas ni claves de API.
 
 ## Funciones
 
@@ -56,7 +56,7 @@ El mensaje de requisitos recibido terminaba durante la descripción del cierre. 
 - [Programa Curricular de Educación Secundaria · MINEDU](https://www.minedu.gob.pe/curriculo/pdf/programa-curricular-educacion-secundaria.pdf), área de Educación Física.
 - [Registro del Programa Curricular en el repositorio oficial](https://repositorio.minedu.gob.pe/handle/20.500.12799/4550).
 
-Las competencias y capacidades corresponden al área. **Los desempeños incluidos son síntesis orientativas editables, no transcripciones completas ni un banco oficial exhaustivo.** Las precisiones, criterios y actividades son propuestas docentes. El docente debe contrastar el texto oficial y contextualizar cada sesión. Cambiar el grado o la competencia actualiza la síntesis del desempeño; no reescribe automáticamente las actividades ni los criterios existentes. Las cinco plantillas iniciales de gimnasia sí ofrecen precisiones y metas graduadas. No se utiliza generación por IA.
+Las competencias y capacidades corresponden al área. **Los desempeños incluidos son síntesis orientativas editables, no transcripciones completas ni un banco oficial exhaustivo.** Las precisiones, criterios y actividades son propuestas docentes. El docente debe contrastar el texto oficial y contextualizar cada sesión. Cambiar el grado o la competencia actualiza la síntesis del desempeño; no reescribe automáticamente las actividades ni los criterios existentes. Las cinco plantillas iniciales de gimnasia sí ofrecen precisiones y metas graduadas. La generación real con IA queda pendiente de configuración y autorización; se incluye una simulación local identificada para pruebas.
 
 ## Estructura
 
@@ -88,7 +88,6 @@ La aplicación usa rutas relativas y funciona bajo el subdirectorio del reposito
 
 Ocho pruebas automatizadas cubren duración, plantillas de los cinco grados, campos y seguridad de actividades, persistencia, datos corruptos, importación y escape de HTML en exportación. Se verificó además en Chromium: vista de escritorio y móvil, edición persistente, duplicación, filtros de búsqueda, vista previa, Word y creación de sesión.
 
-
 ## Formatos de exportación
 
 En «Vista previa» o «Revisar sesión», seleccionar **Formato de exportación**:
@@ -108,3 +107,11 @@ Validación de esta mejora: diez pruebas automatizadas, compilación estática y
 comprobación en Chromium de ambos formatos, cambios sin guardar, lista grupal,
 firmas, pantalla de 390 px y generación de PDF A4 de la sesión de 135 minutos.
 Se conserva la descarga Word compatible que ya existía.
+
+## Generador automático: simulación sin costo
+
+En **Nueva sesión → Generar sesión con IA**, probar **4.º de secundaria · Fundamentos técnicos del atletismo · 135 minutos**. Se abre una sesión nueva de atletismo (25/95/15 minutos) en el editor, con criterios, seguridad y lista de cotejo. La simulación utiliza un ejemplo fijo e identificado; otros temas requieren el servicio real. Las plantillas y la sesión en blanco siguen disponibles.
+
+**La IA real permanece desactivada tanto en cliente como en servidor. No se han activado servicios ni consumido APIs.** El backend propuesto de Cloudflare Workers usa una clave privada de OpenAI, un código de acceso independiente y cuotas globales persistentes de 5 intentos diarios / 50 mensuales. No se publica automáticamente.
+
+Ver [arquitectura, costos aproximados, límites y pasos de activación](docs/generador-ia.md). `npm test` incluye las pruebas nuevas con respuestas simuladas. No requiere instalar dependencias para ejecutar la aplicación ni estas pruebas.

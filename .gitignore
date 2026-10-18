@@ -2,3 +2,9 @@ node_modules/
 dist/
 work/
 .DS_Store
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.wrangler/

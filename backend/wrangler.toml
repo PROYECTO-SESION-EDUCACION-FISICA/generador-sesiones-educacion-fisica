@@ -1,0 +1,18 @@
+name = "impulso-session-generator"
+main = "worker.js"
+compatibility_date = "2026-10-18"
+workers_dev = true
+
+[vars]
+# Keep false until the owner explicitly authorizes real API usage.
+GENERATION_ENABLED = "false"
+# Origin only, no repository path. Replace after authorization.
+ALLOWED_ORIGIN = "https://example.invalid"
+
+[[durable_objects.bindings]]
+name = "USAGE_GATE"
+class_name = "UsageGate"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["UsageGate"]
